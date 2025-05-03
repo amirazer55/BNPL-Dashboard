@@ -18,7 +18,7 @@ import {
 } from "@mui/material";
 import bnplService from "../services/bnplService";
 import authHeader from "../utils/authHeader";
-
+import Analytics from "../components/Analytics";
 const Dashboard = () => {
   const [paymentPlans, setPaymentPlans] = useState([]);
   const [open, setOpen] = useState(false);
@@ -104,8 +104,9 @@ const Dashboard = () => {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <Analytics />
       <Grid container spacing={3}>
-        <Grid item xs={12}>
+          <Grid item xs={12}>
           <Box
             sx={{
               display: "flex",

@@ -36,23 +36,59 @@ class PaymentPlanViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(merchant=self.request.user)
 
-    @action(detail=True, methods=['get'])
-    def analytics(self, request, pk=None):
-        payment_plan = self.get_object()
-        installments = payment_plan.installments.all()
-        
-        total_revenue = installments.filter(status='PAID').aggregate(
-            total=Sum('amount')
-        )['total'] or 0
+    @action(detail=False, methods=['get'])
+    def analytics(self, request):
+        if not request.user.is_merchant:
+            return Response(
+                {'error': 'Only merchants can access analytics'},
+                status=status.HTTP_403_FORBIDDEN
+            )
 
-        overdue_count = installments.filter(status='OVERDUE').count()
-        total_count = installments.count()
-        success_rate = (total_count - overdue_count) / total_count * 100 if total_count > 0 else 0
+        merchant_plans = PaymentPlan.objects.filter(merchant=request.user)
+        total_plans = merchant_plans.count()
+        
+        # Calculate total revenue from paid installments
+        total_revenue = Installment.objects.filter(
+            payment_plan__in=merchant_plans,
+            status='PAID'
+        ).aggregate(total=Sum('amount'))['total'] or 0
+
+        # Count overdue plans
+        overdue_plans = merchant_plans.filter(status='OVERDUE').count()
+
+        # Calculate success rate (completed plans / total plans)
+        completed_plans = merchant_plans.filter(status='COMPLETED').count()
+        success_rate = (completed_plans / total_plans * 100) if total_plans > 0 else 0
+
+        # Get user statistics
+        user_stats = []
+        for plan in merchant_plans:
+            user = plan.user
+            paid_installments = plan.installments.filter(status='PAID').count()
+            total_installments = plan.installments.count()
+            paid_amount = plan.installments.filter(status='PAID').aggregate(total=Sum('amount'))['total'] or 0
+            
+            user_stats.append({
+                'user_id': user.id,
+                'user_email': user.email,
+                'plan_id': plan.id,
+                'plan_name': plan.name,
+                'total_amount': plan.total_amount,
+                'paid_amount': paid_amount,
+                'remaining_amount': plan.total_amount - paid_amount,
+                'paid_installments': paid_installments,
+                'total_installments': total_installments,
+                'payment_progress': (paid_installments / total_installments * 100) if total_installments > 0 else 0,
+                'status': plan.status
+            })
 
         return Response({
             'total_revenue': total_revenue,
-            'overdue_count': overdue_count,
-            'success_rate': success_rate,
+            'overdue_plans': overdue_plans,
+            'success_rate': round(success_rate, 2),
+            'total_plans': total_plans,
+            'completed_plans': completed_plans,
+            'user_statistics': user_stats
         })
 
 class InstallmentViewSet(viewsets.ModelViewSet):

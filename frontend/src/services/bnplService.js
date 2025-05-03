@@ -55,9 +55,9 @@ const bnplService = {
     return response.data;
   },
 
-  getPaymentPlanAnalytics: async (planId) => {
+  getMerchantAnalytics: async () => {
     const response = await axiosInstance.get(
-      `${API_URL}/payment-plans/${planId}/analytics/`,
+      `${API_URL}/payment-plans/analytics/`,
       {
         headers: authHeader(),
       }
