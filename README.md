@@ -125,26 +125,32 @@ A comprehensive Buy Now Pay Later (BNPL) dashboard application that allows merch
 
 ### Authentication
 
-![Login Screen](screenshots/login.png)
+![Login Screen](screenshots/login.png)<img width="1440" alt="Login" src="https://github.com/user-attachments/assets/d8a358fe-81b5-4cee-a75d-926c78882018" />
+
 _User authentication interface with email and password fields_
 
-![Registration Screen](screenshots/register.png)
+![Registration Screen](screenshots/register.png)<img width="1440" alt="register" src="https://github.com/user-attachments/assets/c9de4245-4553-435d-b92a-b2fda71e81d3" />
+
 _New user registration form with merchant option_
 
 ### Merchant Dashboard
 
-![Create Payment Plan](screenshots/create-plan.png)
+![Create Payment Plan](screenshots/create-plan.png)<img width="1440" alt="create plan" src="https://github.com/user-attachments/assets/5b32bc98-fe2e-49d0-a3b7-b04c2bfb84e3" />
+
 _Form for creating new payment plans with amount, installments, and user selection_
 
-![Payment Plans Overview](screenshots/plans-overview.png)
+![Payment Plans Overview](screenshots/plans-overview.png)<img width="1440" alt="home dashboard1" src="https://github.com/user-attachments/assets/830fe269-ba27-472d-92ff-752c38abbcf8" />
+
 _List of all payment plans created by the merchant_
 
-![Analytics Dashboard](screenshots/analytics.png)
+![Analytics Dashboard](screenshots/analytics.png)<img width="1440" alt="home dashboard2" src="https://github.com/user-attachments/assets/0e200448-634e-4da7-8f38-99922b6d70e4" />
+
 _Merchant analytics showing revenue, success rate, and user statistics_
 
 ### User Dashboard
 
-![Installments View](screenshots/installments.png)
+![Installments View](screenshots/installments.png)<img width="1430" alt="installements" src="https://github.com/user-attachments/assets/2c55f893-4545-47a7-a335-878984a93aed" />
+
 _User's installment list with status indicators and payment options_
 
 ## Security Measures
