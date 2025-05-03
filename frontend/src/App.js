@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -18,31 +18,21 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import MerchantDashboard from "./pages/MerchantDashboard";
 import Installments from "./pages/Installments";
-import authService from "./services/authService";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 
 const PrivateRoute = ({ children, merchantOnly = false }) => {
-  const user = authService.getCurrentUser();
+  const { user, isMerchant } = useAuth();
   if (!user) {
     return <Navigate to="/login" />;
   }
-  if (merchantOnly && !authService.isMerchant()) {
+  if (merchantOnly && !isMerchant()) {
     return <Navigate to="/installments" />;
   }
   return children;
 };
 
-function App() {
-  const [user, setUser] = useState(authService.getCurrentUser());
-
-  useEffect(() => {
-    const storedUser = authService.getCurrentUser();
-    setUser(storedUser);
-  }, []);
-
-  const handleLogout = () => {
-    authService.logout();
-    setUser(null);
-  };
+function AppContent() {
+  const { user, logout, isMerchant } = useAuth();
 
   return (
     <Router>
@@ -54,7 +44,7 @@ function App() {
           </Typography>
           {user ? (
             <>
-              {authService.isMerchant() && (
+              {isMerchant() && (
                 <Button color="inherit" component={Link} to="/dashboard">
                   Dashboard
                 </Button>
@@ -62,7 +52,7 @@ function App() {
               <Button color="inherit" component={Link} to="/installments">
                 Installments
               </Button>
-              <Button color="inherit" onClick={handleLogout}>
+              <Button color="inherit" onClick={logout}>
                 Logout
               </Button>
             </>
@@ -103,7 +93,7 @@ function App() {
             path="/"
             element={
               user ? (
-                authService.isMerchant() ? (
+                isMerchant() ? (
                   <Navigate to="/dashboard" />
                 ) : (
                   <Navigate to="/installments" />
@@ -116,6 +106,14 @@ function App() {
         </Routes>
       </Container>
     </Router>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 

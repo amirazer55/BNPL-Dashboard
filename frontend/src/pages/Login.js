@@ -9,10 +9,11 @@ import {
   Box,
   Alert,
 } from "@mui/material";
-import authService from "../services/authService";
+import { useAuth } from "../contexts/AuthContext";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -36,7 +37,7 @@ const Login = () => {
     setError("");
 
     try {
-      await authService.login(formData.email, formData.password);
+      await login(formData.email, formData.password);
       navigate("/dashboard");
     } catch (err) {
       setError(err.message || "An error occurred during login");
