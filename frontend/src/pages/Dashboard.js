@@ -28,7 +28,6 @@ const Dashboard = () => {
     description: "",
     total_amount: "",
     number_of_installments: "",
-    interest_rate: "0",
     user_email: "",
     start_date: new Date().toISOString().split("T")[0],
   });
@@ -79,7 +78,6 @@ const Dashboard = () => {
         ...formData,
         total_amount: parseFloat(formData.total_amount),
         number_of_installments: parseInt(formData.number_of_installments),
-        interest_rate: parseFloat(formData.interest_rate),
       };
 
       await bnplService.createPaymentPlan(formattedData);
@@ -90,7 +88,6 @@ const Dashboard = () => {
         description: "",
         total_amount: "",
         number_of_installments: "",
-        interest_rate: "0",
         user_email: "",
         start_date: new Date().toISOString().split("T")[0],
       });
@@ -154,9 +151,6 @@ const Dashboard = () => {
                 <Typography variant="body2">
                   Installments: {plan.number_of_installments}
                 </Typography>
-                <Typography variant="body2">
-                  Interest Rate: {plan.interest_rate}%
-                </Typography>
                 <Typography variant="body2">User: {plan.user.email}</Typography>
               </CardContent>
               <CardActions>
@@ -211,15 +205,7 @@ const Dashboard = () => {
               margin="normal"
               required
             />
-            <TextField
-              fullWidth
-              label="Interest Rate (%)"
-              name="interest_rate"
-              type="number"
-              value={formData.interest_rate}
-              onChange={handleChange}
-              margin="normal"
-            />
+
             <TextField
               fullWidth
               label="Start Date"

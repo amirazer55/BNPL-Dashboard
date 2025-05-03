@@ -21,7 +21,6 @@ class PaymentPlan(models.Model):
     description = models.TextField()
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     number_of_installments = models.PositiveIntegerField()
-    interest_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     start_date = models.DateField(default=timezone.now)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='ACTIVE')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -66,7 +65,7 @@ class Installment(models.Model):
 @receiver(post_save, sender=PaymentPlan)
 def create_installments(sender, instance, created, **kwargs):
     if created:
-        installment_amount = (instance.total_amount * (1 + instance.interest_rate/100)) / instance.number_of_installments
+        installment_amount = (instance.total_amount) / instance.number_of_installments
         for i in range(instance.number_of_installments):
             due_date = instance.start_date + timedelta(days=30 * (i + 1))
             Installment.objects.create(

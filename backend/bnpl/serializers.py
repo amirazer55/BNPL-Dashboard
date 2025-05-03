@@ -25,7 +25,7 @@ class PaymentPlanSerializer(serializers.ModelSerializer):
     class Meta:
         model = PaymentPlan
         fields = ['id', 'merchant', 'user', 'user_email', 'name', 'description', 'total_amount', 
-                 'number_of_installments', 'interest_rate', 'start_date', 'status',
+                 'number_of_installments', 'start_date', 'status',
                  'created_at', 'updated_at', 'installments', 'paid_installments', 
                  'total_installments']
         read_only_fields = ['merchant', 'status', 'user']
