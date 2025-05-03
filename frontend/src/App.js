@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import Dashboard from "./pages/Dashboard";
+import MerchantDashboard from "./pages/MerchantDashboard";
 import Installments from "./pages/Installments";
 import authService from "./services/authService";
 
@@ -87,7 +87,7 @@ function App() {
             path="/dashboard"
             element={
               <PrivateRoute merchantOnly>
-                <Dashboard />
+                <MerchantDashboard />
               </PrivateRoute>
             }
           />
