@@ -74,11 +74,14 @@ const Installments = () => {
 
   // Group installments by payment plan
   const groupedInstallments = installments.reduce((acc, installment) => {
-    const planId = installment.payment_plan;
+    const planId = installment.payment_plan_id;
     if (!acc[planId]) {
-      acc[planId] = [];
+      acc[planId] = {
+        name: installment.payment_plan_name,
+        installments: [],
+      };
     }
-    acc[planId].push(installment);
+    acc[planId].installments.push(installment);
     return acc;
   }, {});
 
@@ -98,21 +101,24 @@ const Installments = () => {
           </Typography>
         </Grid>
       </Grid>
-      {Object.entries(groupedInstallments).map(([planId, planInstallments]) => (
+      {Object.entries(groupedInstallments).map(([planId, planData]) => (
         <Grid item xs={12} key={planId}>
           <Paper sx={{ p: 2, mb: 2 }}>
             <Typography variant="h6" gutterBottom>
-              Payment Plan #{planId}
+              {planData.name}
             </Typography>
             <Box sx={{ mb: 2 }}>
               <Typography variant="body2" color="text.secondary" gutterBottom>
                 Progress:{" "}
-                {planInstallments.filter((i) => i.status === "PAID").length} /{" "}
-                {planInstallments.length} installments paid
+                {
+                  planData.installments.filter((i) => i.status === "PAID")
+                    .length
+                }{" "}
+                / {planData.installments.length} installments paid
               </Typography>
               <LinearProgress
                 variant="determinate"
-                value={getPlanProgress(planInstallments)}
+                value={getPlanProgress(planData.installments)}
                 sx={{ height: 10, borderRadius: 5 }}
               />
             </Box>
@@ -127,7 +133,7 @@ const Installments = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {planInstallments.map((installment) => (
+                  {planData.installments.map((installment) => (
                     <TableRow key={installment.id}>
                       <TableCell>${installment.amount}</TableCell>
                       <TableCell>

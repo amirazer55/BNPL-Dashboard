@@ -6,10 +6,14 @@ from django.utils import timezone
 User = get_user_model()
 
 class InstallmentSerializer(serializers.ModelSerializer):
+    user_email = serializers.EmailField(source='user.email', read_only=True)
+    payment_plan_name = serializers.CharField(source='payment_plan.name', read_only=True)
+    payment_plan_id = serializers.IntegerField(source='payment_plan.id', read_only=True)
+    
     class Meta:
         model = Installment
-        fields = ['id', 'payment_plan', 'amount', 'due_date', 'status', 'created_at', 'updated_at']
-        read_only_fields = ['status']
+        fields = ['id', 'payment_plan', 'payment_plan_id', 'payment_plan_name', 'user', 'user_email', 'amount', 'due_date', 'status', 'created_at', 'updated_at']
+        read_only_fields = ['status', 'user_email', 'payment_plan_name', 'payment_plan_id']
 
     def validate(self, attrs):
         if self.instance and self.instance.status == 'PAID':
@@ -20,15 +24,19 @@ class PaymentPlanSerializer(serializers.ModelSerializer):
     installments = InstallmentSerializer(many=True, read_only=True)
     paid_installments = serializers.SerializerMethodField()
     total_installments = serializers.SerializerMethodField()
-    user_email = serializers.EmailField(write_only=True, required=True)
+    user_emails = serializers.ListField(
+        child=serializers.EmailField(),
+        write_only=True,
+        required=True
+    )
 
     class Meta:
         model = PaymentPlan
-        fields = ['id', 'merchant', 'user', 'user_email', 'name', 'description', 'total_amount', 
+        fields = ['id', 'merchant', 'users', 'user_emails', 'name', 'description', 'total_amount', 
                  'number_of_installments', 'start_date', 'status',
                  'created_at', 'updated_at', 'installments', 'paid_installments', 
                  'total_installments']
-        read_only_fields = ['merchant', 'status', 'user']
+        read_only_fields = ['merchant', 'status', 'users']
 
     def get_paid_installments(self, obj):
         return obj.installments.filter(status='PAID').count()
@@ -51,24 +59,30 @@ class PaymentPlanSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Start date cannot be in the past")
         return value
 
-    def validate_user_email(self, value):
-        try:
-            user = User.objects.get(email=value)
-            return user
-        except User.DoesNotExist:
-            raise serializers.ValidationError("User with this email does not exist")
+    def validate_user_emails(self, value):
+        users = []
+        for email in value:
+            try:
+                user = User.objects.get(email=email)
+                if user.is_merchant:
+                    raise serializers.ValidationError(f"User {email} is a merchant and cannot be added to a payment plan")
+                users.append(user)
+            except User.DoesNotExist:
+                raise serializers.ValidationError(f"User with email {email} does not exist")
+        return users
 
     def validate(self, attrs):
         if not attrs.get('name'):
             raise serializers.ValidationError({"name": "Name is required"})
         if not attrs.get('description'):
             raise serializers.ValidationError({"description": "Description is required"})
-        if not attrs.get('user_email'):
-            raise serializers.ValidationError({"user_email": "User email is required"})
+        if not attrs.get('user_emails'):
+            raise serializers.ValidationError({"user_emails": "At least one user email is required"})
         return attrs
 
     def create(self, validated_data):
-        user_email = validated_data.pop('user_email')
-        user = User.objects.get(email=user_email)
-        validated_data['user'] = user
-        return super().create(validated_data) 
+        user_emails = validated_data.pop('user_emails')
+        payment_plan = super().create(validated_data)
+        payment_plan.users.set(user_emails)
+        payment_plan.save()
+        return payment_plan 

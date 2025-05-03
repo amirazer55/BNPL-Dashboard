@@ -19,6 +19,11 @@ import {
   ListItem,
   ListItemText,
   Divider,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Chip,
 } from "@mui/material";
 import bnplService from "../services/bnplService";
 import authHeader from "../utils/authHeader";
@@ -26,7 +31,7 @@ import Analytics from "../components/Analytics";
 
 const MerchantDashboard = () => {
   const [paymentPlans, setPaymentPlans] = useState([]);
-  console.log(paymentPlans);
+  const [users, setUsers] = useState([]);
   const [open, setOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
@@ -36,7 +41,7 @@ const MerchantDashboard = () => {
     description: "",
     total_amount: "",
     number_of_installments: "",
-    user_email: "",
+    user_emails: [],
     start_date: new Date().toISOString().split("T")[0],
   });
 
@@ -47,7 +52,18 @@ const MerchantDashboard = () => {
     console.log("Auth header:", authHeader());
 
     fetchPaymentPlans();
+    fetchUsers();
   }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const data = await bnplService.getUsers();
+      setUsers(data);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      setError("Failed to fetch users");
+    }
+  };
 
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
@@ -61,6 +77,13 @@ const MerchantDashboard = () => {
     setFormData((prev) => ({
       ...prev,
       [name]: value,
+    }));
+  };
+
+  const handleUserSelect = (event) => {
+    setFormData((prev) => ({
+      ...prev,
+      user_emails: event.target.value,
     }));
   };
 
@@ -96,7 +119,7 @@ const MerchantDashboard = () => {
         description: "",
         total_amount: "",
         number_of_installments: "",
-        user_email: "",
+        user_emails: [],
         start_date: new Date().toISOString().split("T")[0],
       });
     } catch (error) {
@@ -289,7 +312,6 @@ const MerchantDashboard = () => {
               margin="normal"
               required
             />
-
             <TextField
               fullWidth
               label="Start Date"
@@ -302,16 +324,27 @@ const MerchantDashboard = () => {
                 shrink: true,
               }}
             />
-            <TextField
-              fullWidth
-              label="User Email"
-              name="user_email"
-              type="email"
-              value={formData.user_email}
-              onChange={handleChange}
-              margin="normal"
-              required
-            />
+            <FormControl fullWidth margin="normal">
+              <InputLabel>Select Users</InputLabel>
+              <Select
+                multiple
+                value={formData.user_emails}
+                onChange={handleUserSelect}
+                renderValue={(selected) => (
+                  <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                    {selected.map((value) => (
+                      <Chip key={value} label={value} />
+                    ))}
+                  </Box>
+                )}
+              >
+                {users.map((user) => (
+                  <MenuItem key={user.id} value={user.email}>
+                    {user.email}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </DialogContent>
           <DialogActions>
             <Button onClick={handleClose}>Cancel</Button>

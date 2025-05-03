@@ -36,32 +36,33 @@ axiosInstance.interceptors.response.use(
 );
 
 const bnplService = {
+  // User endpoints
+  getUsers: async () => {
+    const response = await axiosInstance.get(`${API_URL}/users/`, {
+      headers: authHeader(),
+    });
+    return response.data;
+  },
+
   // Payment Plan endpoints
   getPaymentPlans: async () => {
-    const response = await axiosInstance.get(`${API_URL}/payment-plans/`, {
+    const response = await axiosInstance.get(`${API_URL}/plans/`, {
       headers: authHeader(),
     });
     return response.data;
   },
 
   createPaymentPlan: async (data) => {
-    const response = await axiosInstance.post(
-      `${API_URL}/payment-plans/`,
-      data,
-      {
-        headers: authHeader(),
-      }
-    );
+    const response = await axiosInstance.post(`${API_URL}/plans/`, data, {
+      headers: authHeader(),
+    });
     return response.data;
   },
 
   getMerchantAnalytics: async () => {
-    const response = await axiosInstance.get(
-      `${API_URL}/payment-plans/analytics/`,
-      {
-        headers: authHeader(),
-      }
-    );
+    const response = await axiosInstance.get(`${API_URL}/plans/analytics/`, {
+      headers: authHeader(),
+    });
     return response.data;
   },
 
