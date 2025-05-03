@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import {
   Container,
   Grid,
-  Paper,
   Typography,
   Button,
   Dialog,
@@ -13,6 +12,9 @@ import {
   Card,
   CardContent,
   CardActions,
+  Box,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 import bnplService from "../services/bnplService";
 import authHeader from "../utils/authHeader";
@@ -20,6 +22,7 @@ import authHeader from "../utils/authHeader";
 const Dashboard = () => {
   const [paymentPlans, setPaymentPlans] = useState([]);
   const [open, setOpen] = useState(false);
+  const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -39,17 +42,12 @@ const Dashboard = () => {
     fetchPaymentPlans();
   }, []);
 
-  const fetchPaymentPlans = async () => {
-    try {
-      const data = await bnplService.getPaymentPlans();
-      setPaymentPlans(data);
-    } catch (error) {
-      console.error("Error fetching payment plans:", error);
-    }
-  };
-
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
+
+  const handleCloseError = () => {
+    setError(null);
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -57,6 +55,21 @@ const Dashboard = () => {
       ...prev,
       [name]: value,
     }));
+  };
+
+  const fetchPaymentPlans = async () => {
+    try {
+      const data = await bnplService.getPaymentPlans();
+      setPaymentPlans(data);
+    } catch (error) {
+      console.error("Error fetching payment plans:", error);
+      const errorMessage =
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        (error.response?.data && JSON.stringify(error.response.data)) ||
+        "Failed to fetch payment plans";
+      setError(errorMessage);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -68,8 +81,6 @@ const Dashboard = () => {
         number_of_installments: parseInt(formData.number_of_installments),
         interest_rate: parseFloat(formData.interest_rate),
       };
-
-      console.log("Sending payment plan data:", formattedData);
 
       await bnplService.createPaymentPlan(formattedData);
       handleClose();
@@ -85,10 +96,12 @@ const Dashboard = () => {
       });
     } catch (error) {
       console.error("Error creating payment plan:", error);
-      if (error.response) {
-        console.error("Error details:", error.response.data);
-        console.error("Request data:", error.config.data);
-      }
+      const errorMessage =
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        (error.response?.data && JSON.stringify(error.response.data)) ||
+        "Failed to create payment plan";
+      setError(errorMessage);
     }
   };
 
@@ -96,17 +109,35 @@ const Dashboard = () => {
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Grid container spacing={3}>
         <Grid item xs={12}>
-          <Paper
-            sx={{ p: 2, display: "flex", justifyContent: "space-between" }}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mb: 3,
+              width: "100%",
+            }}
           >
             <Typography component="h1" variant="h4">
               Payment Plans
             </Typography>
-            <Button variant="contained" color="primary" onClick={handleOpen}>
-              Create New Plan
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleOpen}
+              sx={{
+                height: "fit-content",
+                position: "absolute",
+                right: 16,
+              }}
+            >
+              Create Plan
             </Button>
-          </Paper>
+          </Box>
         </Grid>
+      </Grid>
+
+      <Grid container spacing={3} sx={{ mt: 2 }}>
         {paymentPlans.map((plan) => (
           <Grid item xs={12} md={6} lg={4} key={plan.id}>
             <Card>
@@ -220,6 +251,21 @@ const Dashboard = () => {
           </DialogActions>
         </form>
       </Dialog>
+
+      <Snackbar
+        open={!!error}
+        autoHideDuration={6000}
+        onClose={handleCloseError}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleCloseError}
+          severity="error"
+          sx={{ width: "100%" }}
+        >
+          {error}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 };
