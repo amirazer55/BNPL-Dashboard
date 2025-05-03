@@ -82,7 +82,7 @@ const Analytics = () => {
   if (!analytics) return null;
 
   return (
-    <Grid container spacing={3}>
+    <Grid container spacing={3} sx={{ mt: 3 }}>
       <Grid item xs={12} md={4}>
         <StatCard
           title="Total Revenue"

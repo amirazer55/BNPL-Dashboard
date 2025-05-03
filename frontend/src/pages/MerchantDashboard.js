@@ -15,13 +15,21 @@ import {
   Box,
   Snackbar,
   Alert,
+  List,
+  ListItem,
+  ListItemText,
+  Divider,
 } from "@mui/material";
 import bnplService from "../services/bnplService";
 import authHeader from "../utils/authHeader";
 import Analytics from "../components/Analytics";
+
 const MerchantDashboard = () => {
   const [paymentPlans, setPaymentPlans] = useState([]);
+  console.log(paymentPlans);
   const [open, setOpen] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState(null);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
     name: "",
@@ -102,9 +110,18 @@ const MerchantDashboard = () => {
     }
   };
 
+  const handleViewDetails = (plan) => {
+    setSelectedPlan(plan);
+    setDetailsOpen(true);
+  };
+
+  const handleCloseDetails = () => {
+    setDetailsOpen(false);
+    setSelectedPlan(null);
+  };
+
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Analytics />
       <Grid container spacing={3}>
         <Grid item xs={12}>
           <Box
@@ -152,15 +169,81 @@ const MerchantDashboard = () => {
                 <Typography variant="body2">
                   Installments: {plan.number_of_installments}
                 </Typography>
-                <Typography variant="body2">User: {plan.user.email}</Typography>
+                <Typography variant="body2">
+                  Start Date: {plan.start_date}
+                </Typography>
               </CardContent>
               <CardActions>
-                <Button size="small">View Details</Button>
+                <Button size="small" onClick={() => handleViewDetails(plan)}>
+                  View Details
+                </Button>
               </CardActions>
             </Card>
           </Grid>
         ))}
       </Grid>
+      <Analytics />
+
+      <Dialog
+        open={detailsOpen}
+        onClose={handleCloseDetails}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Payment Plan Details</DialogTitle>
+        <DialogContent>
+          {selectedPlan && (
+            <List>
+              <ListItem>
+                <ListItemText
+                  primary="Plan Name"
+                  secondary={selectedPlan.name}
+                />
+              </ListItem>
+              <Divider />
+              <ListItem>
+                <ListItemText
+                  primary="Description"
+                  secondary={selectedPlan.description}
+                />
+              </ListItem>
+              <Divider />
+              <ListItem>
+                <ListItemText
+                  primary="Total Amount"
+                  secondary={`$${selectedPlan.total_amount}`}
+                />
+              </ListItem>
+              <Divider />
+              <ListItem>
+                <ListItemText
+                  primary="Number of Installments"
+                  secondary={selectedPlan.number_of_installments}
+                />
+              </ListItem>
+              <Divider />
+              <ListItem>
+                <ListItemText
+                  primary="Start Date"
+                  secondary={new Date(
+                    selectedPlan.start_date
+                  ).toLocaleDateString()}
+                />
+              </ListItem>
+              <Divider />
+              <ListItem>
+                <ListItemText
+                  primary="Status"
+                  secondary={selectedPlan.status || "Active"}
+                />
+              </ListItem>
+            </List>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDetails}>Close</Button>
+        </DialogActions>
+      </Dialog>
 
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Create New Payment Plan</DialogTitle>
