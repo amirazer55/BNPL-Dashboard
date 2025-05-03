@@ -104,7 +104,7 @@ A comprehensive Buy Now Pay Later (BNPL) dashboard application that allows merch
 1. Merchant views analytics dashboard
 2. Sees overview of all plans:
    ```
-   Total Revenue: 500 
+   Total Revenue: 500
    Active Plans: 3
    Overdue Plans: 1
    Success Rate: 75%
@@ -112,14 +112,40 @@ A comprehensive Buy Now Pay Later (BNPL) dashboard application that allows merch
 3. Drills down to specific plan:
    ```
    Plan: "Summer Collection"
-   Total Amount: 1000 
+   Total Amount: 1000
    Paid Amount: 500
-   Remaining: 500 
+   Remaining: 500
    Status: Active
    User Progress:
    - user1@example.com: 2/4 paid
    - user2@example.com: 0/4 paid
    ```
+
+## Screenshots
+
+### Authentication
+
+![Login Screen](screenshots/login.png)
+_User authentication interface with email and password fields_
+
+![Registration Screen](screenshots/register.png)
+_New user registration form with merchant option_
+
+### Merchant Dashboard
+
+![Create Payment Plan](screenshots/create-plan.png)
+_Form for creating new payment plans with amount, installments, and user selection_
+
+![Payment Plans Overview](screenshots/plans-overview.png)
+_List of all payment plans created by the merchant_
+
+![Analytics Dashboard](screenshots/analytics.png)
+_Merchant analytics showing revenue, success rate, and user statistics_
+
+### User Dashboard
+
+![Installments View](screenshots/installments.png)
+_User's installment list with status indicators and payment options_
 
 ## Security Measures
 
