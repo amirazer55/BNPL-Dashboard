@@ -82,7 +82,7 @@ class PaymentPlanSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user_emails = validated_data.pop('user_emails')
-        payment_plan = super().create(validated_data)
+        # Create the payment plan without merchant (it's set in the view)
+        payment_plan = PaymentPlan.objects.create(**validated_data)
         payment_plan.users.set(user_emails)
-        payment_plan.save()
         return payment_plan 

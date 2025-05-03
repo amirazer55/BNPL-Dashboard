@@ -26,7 +26,11 @@ class IsPlanUser(permissions.BasePermission):
         return request.user and request.user.is_authenticated
 
     def has_object_permission(self, request, view, obj):
-        return request.user in obj.payment_plan.users.all()
+        if isinstance(obj, PaymentPlan):
+            return request.user in obj.users.all()
+        elif isinstance(obj, Installment):
+            return request.user == obj.user and request.user in obj.payment_plan.users.all()
+        return False
 
 class PaymentPlanViewSet(viewsets.ModelViewSet):
     queryset = PaymentPlan.objects.all()
@@ -35,8 +39,11 @@ class PaymentPlanViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         if self.request.user.is_merchant:
+            # Merchants can see their own plans
             return PaymentPlan.objects.filter(merchant=self.request.user)
-        return PaymentPlan.objects.filter(users=self.request.user)
+        else:
+            # Regular users can only see plans they're part of
+            return PaymentPlan.objects.filter(users=self.request.user)
 
     def perform_create(self, serializer):
         payment_plan = serializer.save(merchant=self.request.user)
@@ -48,6 +55,12 @@ class PaymentPlanViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'])
     def verify_installments(self, request, pk=None):
         payment_plan = self.get_object()
+        # Check if user has permission to verify
+        if not (request.user.is_merchant and payment_plan.merchant == request.user) and request.user not in payment_plan.users.all():
+            return Response(
+                {'error': 'You do not have permission to verify this plan'},
+                status=status.HTTP_403_FORBIDDEN
+            )
         is_valid, message = payment_plan.verify_installments()
         if is_valid:
             return Response({'status': 'success', 'message': message})
@@ -81,9 +94,11 @@ class PaymentPlanViewSet(viewsets.ModelViewSet):
         user_stats = []
         for plan in merchant_plans:
             for user in plan.users.all():
-                paid_installments = plan.installments.filter(status='PAID').count()
-                total_installments = plan.installments.count()
-                paid_amount = plan.installments.filter(status='PAID').aggregate(total=Sum('amount'))['total'] or 0
+                # Get only the installments for this specific user
+                user_installments = plan.installments.filter(user=user)
+                paid_installments = user_installments.filter(status='PAID').count()
+                total_installments = user_installments.count()
+                paid_amount = user_installments.filter(status='PAID').aggregate(total=Sum('amount'))['total'] or 0
                 
                 user_stats.append({
                     'user_id': user.id,
@@ -114,6 +129,7 @@ class InstallmentViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated, IsPlanUser]
 
     def get_queryset(self):
+        # Users can only see their own installments
         return Installment.objects.filter(
             payment_plan__users=self.request.user,
             user=self.request.user
@@ -121,17 +137,23 @@ class InstallmentViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def mark_as_paid(self, request, pk=None):
-        installment = self.get_object()
+        # Get the specific installment for this user
+        installment = Installment.objects.filter(
+            id=pk,
+            payment_plan__users=request.user,
+            user=request.user
+        ).first()
+        
+        if not installment:
+            return Response(
+                {'error': 'Installment not found or you do not have permission to modify it'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+            
         if installment.status == 'PAID':
             return Response(
                 {'error': 'Installment is already paid'},
                 status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        if installment.user != request.user:
-            return Response(
-                {'error': 'You can only pay your own installments'},
-                status=status.HTTP_403_FORBIDDEN
             )
         
         installment.status = 'PAID'
@@ -164,5 +186,10 @@ class UserListView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
+        if not request.user.is_merchant:
+            return Response(
+                {'error': 'Only merchants can view the user list'},
+                status=status.HTTP_403_FORBIDDEN
+            )
         users = User.objects.filter(is_merchant=False)
         return Response([{'id': user.id, 'email': user.email} for user in users])

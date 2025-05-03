@@ -130,9 +130,11 @@ class Installment(models.Model):
 def create_installments(sender, instance, created, **kwargs):
     if created:
         try:
-            # Wait a moment to ensure users are set
-            sleep(0.1)  # Small delay to ensure users are set
-            
+            # Check if installments already exist
+            if instance.installments.exists():
+                print(f"Installments already exist for payment plan {instance.name}")
+                return
+
             # Validate the payment plan has users
             if not instance.users.exists():
                 print("Warning: Payment plan created without users. Waiting for users to be set...")
@@ -164,15 +166,6 @@ def create_installments(sender, instance, created, **kwargs):
                     f"Installment count mismatch. Expected: {total_expected_installments}, "
                     f"Created: {actual_installments}"
                 )
-
-            # Verify each user has the correct number of installments
-            for user in instance.users.all():
-                user_installments = instance.installments.filter(user=user).count()
-                if user_installments != instance.number_of_installments:
-                    raise ValueError(
-                        f"User {user.email} has {user_installments} installments, "
-                        f"expected {instance.number_of_installments}"
-                    )
 
             print(f"Successfully created {actual_installments} installments for payment plan {instance.name}")
 
