@@ -11,6 +11,7 @@ A comprehensive Buy Now Pay Later (BNPL) dashboard application that allows merch
 - [Setup Instructions](#setup-instructions)
 - [Technologies Used](#technologies-used)
 - [Technical Implementation Details](#technical-implementation-details)
+- [Example Flows](#example-flows)
 
 ## Features
 
@@ -19,10 +20,14 @@ A comprehensive Buy Now Pay Later (BNPL) dashboard application that allows merch
 - **Payment Plan Management**
 
   - Create payment plans with customizable parameters
-  - Set total amount, number of installments, and start date
-  - Add multiple users to a payment plan
-  - Automatic installment creation with due dates
-  - Installment verification and validation
+    - Set total amount (e.g., 1000)
+    - Configure number of installments (e.g., 4 monthly payments)
+    - Set start date
+    - Add multiple users via email
+  - Automatic installment creation
+    - Equal split of total amount
+    - Monthly due dates calculation
+    - Validation of total amounts
   - View and manage all created payment plans
   - Payment plan status tracking (Active, Completed, Overdue)
 
@@ -57,6 +62,64 @@ A comprehensive Buy Now Pay Later (BNPL) dashboard application that allows merch
   - Track total amount and remaining balance
   - Monitor installment status and due dates
   - Progress visualization with progress bars
+
+## Example Flows
+
+### 1. Merchant Creates a Payment Plan
+
+1. Merchant logs in and navigates to the dashboard
+2. Clicks "Create Plan" button
+3. Enters plan details:
+   ```
+   Name: "Summer Collection"
+   Total Amount: 1000
+   Number of Installments: 4
+   Start Date: 2024-06-01
+   Users: [user1@example.com, user2@example.com]
+   ```
+4. System automatically:
+   - Creates the payment plan
+   - Generates 4 installments of 250 each
+   - Sets due dates (monthly from start date)
+   - Assigns installments to each user
+
+### 2. User Manages Installments
+
+1. User logs in and sees their dashboard
+2. Views all payment plans they're part of
+3. For each plan:
+   - Sees progress bar (e.g., "2/4 installments paid")
+   - Views list of installments with:
+     - Amount (250)
+     - Due date
+     - Status (Pending/Paid/Overdue)
+4. Can mark pending installments as paid
+5. System automatically:
+   - Updates installment status
+   - Updates payment plan status
+   - Recalculates progress
+
+### 3. Merchant Monitors Progress
+
+1. Merchant views analytics dashboard
+2. Sees overview of all plans:
+   ```
+   Total Revenue: 500 
+   Active Plans: 3
+   Overdue Plans: 1
+   Success Rate: 75%
+   ```
+3. Drills down to specific plan:
+   ```
+   Plan: "Summer Collection"
+   Total Amount: 1000 
+   Paid Amount: 500
+   Remaining: 500 
+   Status: Active
+   User Progress:
+   - user1@example.com: 2/4 paid
+   - user2@example.com: 0/4 paid
+   ```
 
 ## Security Measures
 
